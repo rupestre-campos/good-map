@@ -4,6 +4,7 @@ import osmnx as ox
 import os
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from shapely.geometry import MultiPoint, MultiLineString, MultiPolygon
 
 
 def download_url(url, output_folder):
@@ -63,21 +64,63 @@ def retrieve_parks_parallel(countries_gdf, tags, max_workers=4):
 
 
 def save_parks_to_file(parks_data, output_path):
-    """Save the parks data to a GeoJSON file."""
-    if parks_data:
-        all_parks_gdf = gpd.GeoDataFrame(pd.concat(parks_data, ignore_index=True))
-    else:
-        all_parks_gdf = gpd.GeoDataFrame()
-    all_parks_gdf.to_file(output_path, driver="GeoJSON")
-    print(f"Saved parks data to {output_path}")
+    """Save the parks data to a GeoPackage with separate layers for points, lines, and polygons."""
+    if not parks_data:
+        print("No parks data to save.")
+        return
 
+    # Concatenate all parks into a single GeoDataFrame
+    all_parks_gdf = gpd.GeoDataFrame(pd.concat(parks_data, ignore_index=True))
+
+    # Ensure geometries are valid
+    all_parks_gdf = all_parks_gdf[all_parks_gdf.geometry.notnull()]
+    all_parks_gdf = all_parks_gdf.set_crs("EPSG:4326", allow_override=True)
+    all_parks_gdf = rename_duplicated_columns(all_parks_gdf)
+
+    # Separate geometries into points, lines, and polygons
+    points_gdf = all_parks_gdf[all_parks_gdf.geometry.type.isin(["Point", "MultiPoint"])]
+    lines_gdf = all_parks_gdf[all_parks_gdf.geometry.type.isin(["LineString", "MultiLineString"])]
+    polygons_gdf = all_parks_gdf[all_parks_gdf.geometry.type.isin(["Polygon", "MultiPolygon"])]
+
+    # Convert to multi-geometry types
+    points_gdf["geometry"] = points_gdf.geometry.apply(
+        lambda geom: MultiPoint([geom]) if geom.geom_type == "Point" else geom
+    )
+    lines_gdf["geometry"] = lines_gdf.geometry.apply(
+        lambda geom: MultiLineString([geom]) if geom.geom_type == "LineString" else geom
+    )
+    polygons_gdf["geometry"] = polygons_gdf.geometry.apply(
+        lambda geom: MultiPolygon([geom]) if geom.geom_type == "Polygon" else geom
+    )
+
+    # Save each layer to a GeoPackage
+    points_gdf.to_file(output_path, layer="points", driver="GPKG")
+    lines_gdf.to_file(output_path, layer="lines", driver="GPKG")
+    polygons_gdf.to_file(output_path, layer="polygons", driver="GPKG")
+    print(f"Saved parks data to {output_path} with layers: points, lines, polygons")
+
+# Handle duplicated column names by renaming them instead of dropping
+def rename_duplicated_columns(gdf):
+    """Rename duplicated columns in a GeoDataFrame."""
+    seen = set()
+    new_columns = []
+    for col in gdf.columns:
+        new_col = col.lower().replace(":","_").replace(" ", "")
+        count = 1
+        while new_col in seen:
+            new_col = f"{col}_{count}"
+            count += 1
+        new_columns.append(new_col)
+        seen.add(new_col)
+    gdf.columns = new_columns
+    return gdf
 
 def main():
     # 1. Define input data and parameters
     countries_url = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_countries.zip"
     output_folder = "./data"
     os.makedirs(output_folder, exist_ok=True)
-    output_path = os.path.join(output_folder, "all_parks.geojson")
+    output_path = os.path.join(output_folder, "national_parks.gpkg")
     tags = {"boundary": "national_park"}
 
     # 2. Load countries shapefile
