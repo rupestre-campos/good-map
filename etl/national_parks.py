@@ -8,6 +8,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from shapely.geometry import MultiPoint, MultiLineString, MultiPolygon
 from shapely.validation import make_valid
 
+ox.settings.max_query_area_size = 25_000_000_000_000
+ox.settings.requests_timeout = 180
+
+countries_url = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_countries.zip"
+output_folder = "./data"
+
 def download_url(url, output_folder):
     """Download a file from a URL and save it to the specified output folder."""
     outfile = os.path.join(output_folder, os.path.basename(url))
@@ -132,33 +138,23 @@ def rename_duplicated_columns(gdf):
     return gdf
 
 def main():
-    # 1. Define input data and parameters
-    countries_url = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_countries.zip"
-    output_folder = "./data"
     os.makedirs(output_folder, exist_ok=True)
     output_path = os.path.join(output_folder, "national_parks.gpkg")
     tags = {
         "boundary": ["national_park"],
-        "protect_class": ["2"],  # Optional: Adjust these as needed
-        "designation": "national_park",  # Optional: Include specific designation filters
+        "protect_class": ["2"],
+        "designation": "national_park",
         "protected_area":"national_park"
     }
 
-    # 2. Load countries shapefile
     countries_gdf = load_countries(countries_url, output_folder)
-    #countries_gdf = countries_gdf.sort_values(by="POP_EST")[-150:].copy()
 
     countries_gdf["geometry"] = countries_gdf["geometry"].apply(
         lambda geom: make_valid(geom) if geom and not geom.is_valid else geom
     )
-    # 3. Set OSMnx settings
-    ox.settings.max_query_area_size = 25_000_000_000_000
-    ox.settings.requests_timeout = 180
 
-    # 4. Retrieve parks data in parallel
     parks_data = retrieve_parks_parallel(countries_gdf, tags, max_workers=4)
 
-    # 5. Save the resulting parks data to a GeoJSON file
     save_parks_to_file(parks_data, output_path)
 
 
