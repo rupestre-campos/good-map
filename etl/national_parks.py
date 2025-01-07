@@ -3,9 +3,10 @@ import pandas as pd
 import osmnx as ox
 import os
 import requests
+import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from shapely.geometry import MultiPoint, MultiLineString, MultiPolygon
-
+from shapely.validation import make_valid
 
 def download_url(url, output_folder):
     """Download a file from a URL and save it to the specified output folder."""
@@ -31,6 +32,9 @@ def load_countries(url, output_folder):
 
     return countries_gdf
 
+def fetch_features(geometry, tags):
+    """Query OSM features."""
+    return ox.features_from_polygon(geometry, tags=tags)
 
 def fetch_parks_for_country(row, tags):
     """Query OSM for parks within a country's boundary."""
@@ -38,7 +42,7 @@ def fetch_parks_for_country(row, tags):
     geometry = row["geometry"]
 
     try:
-        parks_gdf = ox.features_from_polygon(geometry, tags=tags)
+        parks_gdf = fetch_features(geometry, tags=tags)
         parks_gdf["country"] = country_name
         print(country_name)
         return parks_gdf
@@ -76,6 +80,16 @@ def save_parks_to_file(parks_data, output_path):
     all_parks_gdf = all_parks_gdf[all_parks_gdf.geometry.notnull()]
     all_parks_gdf = all_parks_gdf.set_crs("EPSG:4326", allow_override=True)
     all_parks_gdf = rename_duplicated_columns(all_parks_gdf)
+    # Handle duplicate column names
+    all_parks_gdf = rename_duplicated_columns(all_parks_gdf)
+
+    # Simplify the GeoDataFrame: keep 'name' and 'geometry', move others to JSON
+    def create_properties_json(row):
+        props = row.drop(["name", "geometry"]).to_dict()
+        return json.dumps(props)
+
+    all_parks_gdf["properties"] = all_parks_gdf.apply(create_properties_json, axis=1)
+    all_parks_gdf = all_parks_gdf[["name", "geometry", "properties"]].copy()
 
     # Separate geometries into points, lines, and polygons
     points_gdf = all_parks_gdf[all_parks_gdf.geometry.type.isin(["Point", "MultiPoint"])]
@@ -102,13 +116,15 @@ def save_parks_to_file(parks_data, output_path):
 # Handle duplicated column names by renaming them instead of dropping
 def rename_duplicated_columns(gdf):
     """Rename duplicated columns in a GeoDataFrame."""
+    if 'fid' in gdf.columns:
+        del gdf['fid']
     seen = set()
     new_columns = []
     for col in gdf.columns:
         new_col = col.lower().replace(":","_").replace(" ", "")
         count = 1
         while new_col in seen:
-            new_col = f"{col}_{count}"
+            new_col = f"{col.lower().replace(':','_').replace(' ', '')}_{count}"
             count += 1
         new_columns.append(new_col)
         seen.add(new_col)
@@ -121,13 +137,23 @@ def main():
     output_folder = "./data"
     os.makedirs(output_folder, exist_ok=True)
     output_path = os.path.join(output_folder, "national_parks.gpkg")
-    tags = {"boundary": "national_park"}
+    tags = {
+        "boundary": ["national_park"],
+        "protect_class": ["2"],  # Optional: Adjust these as needed
+        "designation": "national_park",  # Optional: Include specific designation filters
+        "protected_area":"national_park"
+    }
 
     # 2. Load countries shapefile
     countries_gdf = load_countries(countries_url, output_folder)
+    #countries_gdf = countries_gdf.sort_values(by="POP_EST")[-150:].copy()
 
+    countries_gdf["geometry"] = countries_gdf["geometry"].apply(
+        lambda geom: make_valid(geom) if geom and not geom.is_valid else geom
+    )
     # 3. Set OSMnx settings
-    ox.settings.max_query_area_size = 25000000000000000000000000000
+    ox.settings.max_query_area_size = 25_000_000_000_000
+    ox.settings.requests_timeout = 180
 
     # 4. Retrieve parks data in parallel
     parks_data = retrieve_parks_parallel(countries_gdf, tags, max_workers=4)
