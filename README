@@ -1,0 +1,20 @@
+# Open National Parks Map
+
+This repository holds code to extract National Parks from open source data.
+The start point is to extract from Open Street Maps,
+querying for each country in Natural Earth for tags related to National Parks.
+
+For the future there is plan to achieve boundaries from each country websites directly.
+
+WHY?
+
+Besides IUCN holds a World database on protected areas, it is not open for
+comercial use. So if you are looking for open data this project can be helpful.
+
+IDEAS, ISSUES, HELP
+
+Post on issues in this repo and I will help.
+
+CONTRIBUTING
+
+Get in touch in issues and we can collaborate
