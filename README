@@ -4,8 +4,6 @@ This repository holds code to extract National Parks from open source data.
 The start point is to extract from Open Street Maps,
 querying for each country in Natural Earth for tags related to National Parks.
 
-In a hurry? We got you covered with the lattest result ready to download at
-https://file.io/bZvygRtkPPyO
 
 
 WHY?
