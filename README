@@ -1,6 +1,6 @@
 # Open National Parks Map
 
-![screenshot](sample_map_national_parks.png)
+![image](https://raw.githubusercontent.com/rupestre-campos/open-national-parks-map/refs/heads/main/sample_map_national_parks.png)
 
 This repository holds code to create a Worldwide National Parks dataset from open source data.
 The start point is to extract from Open Street Maps, thanks to this great project we are able to
@@ -9,7 +9,7 @@ query national parks for each country present in Natural Earth dataset, looking 
 In a hurry? We got you covered with the lattest result ready to download at
 https://www.dropbox.com/scl/fi/fjdtvhexn108tlwa6n3s0/national_parks.gpkg?rlkey=4j19p9mzbfinnm2f2bh2kf2da&st=hi693s4m&dl=1
 
-Instalation
+## Instalation
 Debians
 Open terminal and run commands bellow to install dependencies and setup environment
 
@@ -23,16 +23,16 @@ python -m pip install -r requirements.txt
 python national_parks.py
 
 
-WHY?
+## WHY?
 
 Besides IUCN holds a World database on protected areas, it is not open for
 comercial use. So if you are looking for open data this project can be helpful.
 
-IDEAS, ISSUES, HELP
+## IDEAS, ISSUES, HELP
 
 Post on issues in this repo and I will help.
 
-CONTRIBUTING
+## CONTRIBUTING
 
 Get in touch in issues and we can discuss how to collaborate.
 
