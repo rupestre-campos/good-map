@@ -7,6 +7,20 @@ query national parks for each country present in Natural Earth dataset, looking 
 In a hurry? We got you covered with the lattest result ready to download at
 https://www.dropbox.com/scl/fi/fjdtvhexn108tlwa6n3s0/national_parks.gpkg?rlkey=4j19p9mzbfinnm2f2bh2kf2da&st=hi693s4m&dl=1
 
+Instalation
+Debians
+Open terminal and run commands bellow to install dependencies and setup environment
+
+sudo apt update
+sudo apt install python-venv
+git clone https://github.com/rupestre-campos/open-national-parks-map.git
+cd open-national-parks-map/etl/
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python national_parks.py
+
+
 WHY?
 
 Besides IUCN holds a World database on protected areas, it is not open for
