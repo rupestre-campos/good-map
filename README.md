@@ -6,8 +6,7 @@ This repository holds code to create a Worldwide National Parks dataset from ope
 The start point is to extract from Open Street Maps, thanks to this great project we are able to
 query national parks for each country present in Natural Earth dataset, looking for tags of interest.
 
-In a hurry? We got you covered with the lattest result ready to download at
-https://www.dropbox.com/scl/fi/fjdtvhexn108tlwa6n3s0/national_parks.gpkg?rlkey=4j19p9mzbfinnm2f2bh2kf2da&st=hi693s4m&dl=1
+In a hurry? We got you covered with the lattest result ready to [download](https://www.dropbox.com/scl/fi/xoxpaq47vzftm8odr8brj/national_parks_20250108T013315.gpkg?rlkey=14x68afu7hg7djjuu0o0z9zff&st=oetxcm98&dl=1)
 
 ## Instalation
 Debians
