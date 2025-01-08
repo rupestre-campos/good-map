@@ -38,6 +38,8 @@ Post on issues in this repo and I will help.
 
 Get in touch in issues and we can discuss how to collaborate.
 
-FUTURE
+## FUTURE
 
-For the future there is a plan to extract National Parks boundaries from each country own websites directly.
+Provide a vector tile layer for web maps and qgis;
+Create a simple public dynamic web map;
+Create detailed maps for each park in pdf for offline use;
