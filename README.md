@@ -11,7 +11,7 @@ In a hurry? We got you covered with the lattest result ready to [download](https
 ## Instalation
 Debians
 Open terminal and run commands bellow to install dependencies and setup environment
-
+```
 sudo apt update
 sudo apt install python-venv
 git clone https://github.com/rupestre-campos/open-national-parks-map.git
@@ -20,7 +20,7 @@ python -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
 python national_parks.py
-
+```
 
 ## WHY?
 
