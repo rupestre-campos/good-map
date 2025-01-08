@@ -8,7 +8,7 @@ query national parks for each country present in Natural Earth dataset, looking 
 
 The map above was made with this dataset in Qgis for simplicity. Share yours too!
 
-In a hurry? We got you covered with the lattest result ready to [download](https://www.dropbox.com/scl/fi/xoxpaq47vzftm8odr8brj/national_parks_20250108T013315.gpkg?rlkey=14x68afu7hg7djjuu0o0z9zff&st=oetxcm98&dl=1)
+In a hurry? We got you covered with the lattest release ready to [download](https://github.com/rupestre-campos/open-national-parks-map/releases)
 
 ## Instalation
 Debians
@@ -41,5 +41,7 @@ Get in touch in issues and we can discuss how to collaborate.
 ## FUTURE
 
 Provide a vector tile layer for web maps and qgis;
+
 Create a simple public dynamic web map;
+
 Create detailed maps for each park in pdf for offline use;
