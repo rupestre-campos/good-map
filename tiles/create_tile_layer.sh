@@ -5,6 +5,7 @@
 GPKG_FILE="../etl/data/national_parks_20250108T013315.gpkg"
 FINAL_OUTPUT_FILE="./data/national_parks.geojsonseq"
 PMTILES_FILE="./data/national_parks.pmtiles"
+
 rm "${FINAL_OUTPUT_FILE}"
 rm "${PMTILES_FILE}"
 

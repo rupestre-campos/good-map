@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>National Parks Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.css" crossorigin="anonymous">
+  <script src="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.js" crossorigin="anonymous"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script>
+    // Initialize the Map with zoom 0 and center at 0,0
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: {
+        version: 8,
+        projection: {
+            type: 'globe'
+        },
+        sky: {
+            'atmosphere-blend': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                0, 0.2,
+                5, 0.1,
+                7, 0
+            ]
+            },
+        light: {
+            'anchor': 'map',
+            'position': [1.5, 90, 60],
+            'intensity': 0.2
+            },
+        sources: {
+          'osm-tiles': {
+            type: 'raster',
+            tiles: [
+              'https://car.rupestre-campos.org/osm-tiles/{z}/{x}/{y}.png'
+            ],
+            tileSize: 256,
+            attribution: '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>'
+          },
+          'image-tiles': {
+            type: 'raster',
+            tiles: [
+              'https://car.rupestre-campos.org/image-tiles/{z}/{x}/{y}.png'
+            ],
+            tileSize: 256,
+            attribution: '<a href="https://www.planet.com/nicfi/">planet</a>'
+          },
+          'national-parks': {
+            type: 'vector',
+            tiles: [
+              'https://car.rupestre-campos.org/tiles-national-parks/{z}/{x}/{y}.pbf'
+            ],
+          },
+          'google-satellite': {
+            type: 'raster',
+            tiles: [
+              'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'
+            ],
+            tileSize: 256,
+            attribution: '© <a href="https://www.google.com/permissions/geoguidelines.html">Google</a>'
+          },
+          'esri-satellite': {
+            type: 'raster',
+            tiles: [
+              'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+            ],
+            tileSize: 256,
+            attribution: '© <a href="https://www.esri.com/">Esri</a>'
+          },
+        },
+        layers: [
+          {
+            id: 'osm-tiles',
+            type: 'raster',
+            source: 'osm-tiles',
+            layout: {
+              visibility: 'visible',
+            },
+          },
+          {
+            id: 'image-tiles',
+            type: 'raster',
+            source: 'image-tiles',
+            layout: {
+              visibility: 'none',
+            },
+          },
+          {
+            id: 'google-satellite',
+            type: 'raster',
+            source: 'google-satellite',
+            layout: {
+              visibility: 'none',
+            },
+          },
+          {
+            id: 'esri-satellite',
+            type: 'raster',
+            source: 'esri-satellite',
+            layout: {
+              visibility: 'none',
+            },
+          },
+        ],
+      },
+      center: [0, 0], // Center at (0,0)
+      zoom: 3, // Zoom level 0
+    });
+
+    // Add navigation controls
+    map.addControl(new maplibregl.NavigationControl());
+
+    // Add the national parks layer with the updated source-layer name
+    map.on('load', () => {
+      map.addLayer({
+        id: 'national-parks',
+        type: 'fill',
+        source: 'national-parks',
+        'source-layer': 'national_parks', // Changed from 'default' to 'national_parks'
+        paint: {
+          'fill-color': '#0E6629',
+          'fill-opacity': 0.3,
+        },
+      });
+
+    map.addLayer({
+      id: 'national-parks-outline',
+      type: 'line',
+      source: 'national-parks',
+      'source-layer': 'national_parks', // Adjust this if your source layer name differs
+      paint: {
+        'line-color': '#71C946', // Dark green for the outline
+        'line-width': 2, // Make the border thicker
+      },
+    });
+    });
+    // Add a basemap switcher
+    const layers = {
+      'OpenStreetMap': 'osm-tiles',
+      'NICFI Planet Imagery': 'image-tiles',
+      'Google Satellite': 'google-satellite',
+      'ESRI Satellite': 'esri-satellite',
+    };
+
+    const toggleLayer = (layerId) => {
+      Object.keys(layers).forEach((name) => {
+        const id = layers[name];
+        map.setLayoutProperty(id, 'visibility', id === layerId ? 'visible' : 'none');
+      });
+    };
+
+    const layerSelector = document.createElement('div');
+    layerSelector.style.position = 'absolute';
+    layerSelector.style.top = '10px';
+    layerSelector.style.left = '10px';
+    layerSelector.style.backgroundColor = 'white';
+    layerSelector.style.padding = '10px';
+    layerSelector.style.borderRadius = '4px';
+
+    Object.keys(layers).forEach((name) => {
+      const button = document.createElement('button');
+      button.textContent = name;
+      button.style.display = 'block';
+      button.style.marginBottom = '5px';
+      button.onclick = () => toggleLayer(layers[name]);
+      layerSelector.appendChild(button);
+    });
+
+    document.body.appendChild(layerSelector);
+
+    // Display a popup on click on the national-parks layer
+    map.on('click', 'national-parks', (e) => {
+      // Get the features at the clicked point
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: ['national-parks']
+      });
+
+      if (features.length > 0) {
+        const feature = features[0];
+        const name = feature.properties.name || 'Unnamed Park'; // Adjust based on your data properties
+        const country = feature.properties.country || 'Unknown Country'; // Adjust based on your data properties
+        let properties = feature.properties.properties || '{}'; // Assuming 'properties' is a JSON string
+
+        // Parse the JSON string into an object
+        try {
+          properties = JSON.parse(properties);
+        } catch (e) {
+          console.error('Error parsing properties JSON:', e);
+          properties = {}; // Default to an empty object if parsing fails
+        }
+
+        // Format the properties JSON into key-value pairs
+        let propertiesHTML = '';
+        for (const [key, value] of Object.entries(properties)) {
+          propertiesHTML += `<strong>${key}:</strong> ${value}<br>`;
+        }
+
+        const popupHTML = `
+          <strong>${name}</strong><br>
+          <em>${country}</em><br><br>
+          <strong>Properties:</strong><br>
+          ${propertiesHTML}
+        `;
+
+        const popup = new maplibregl.Popup()
+          .setLngLat(e.lngLat)
+          .setHTML(popupHTML)
+          .addTo(map);
+      }
+    });
+  </script>
+</body>
+</html>

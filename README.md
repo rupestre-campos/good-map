@@ -1,12 +1,12 @@
 # Open National Parks Map
 
+[Demo live map](https://car.rupestre-campos.org/national-parks-map)
+
 ![image](https://raw.githubusercontent.com/rupestre-campos/open-national-parks-map/refs/heads/main/sample_map_national_parks.png)
 
 This repository holds code to create a Worldwide National Parks dataset from open source data.
 The start point is to extract from Open Street Maps, thanks to this great project we are able to
 query national parks for each country present in Natural Earth dataset, looking for tags of interest.
-
-The map above was made with this dataset in Qgis for simplicity. Share yours too!
 
 In a hurry? We got you covered with the lattest release ready to [download](https://github.com/rupestre-campos/open-national-parks-map/releases)
 
